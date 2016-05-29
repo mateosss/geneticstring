@@ -1,4 +1,4 @@
-# geneticstring
+# Genetic String
 A Python script to find a string through Genetic Algorythms
 
 # Some stats
