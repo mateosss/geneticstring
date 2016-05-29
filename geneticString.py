@@ -5,7 +5,7 @@ startTime = time()
 # TODO ERRORS siempre se mantienen las letras de los padres, nunca se van a generar nuevas letras, hacer el crossover por cada gen(letra) y no por cromosoma
 # TODO ERRORS Hacer el script threadsafe
 #The God Word, to what the subject aspires to be
-god = "Hola yo soy un cromosoma"
+god = "geneticString"
 
 #General Rules for fitness score
 wordLengthMaxScore = 0.5
@@ -22,9 +22,8 @@ pause = 10000 #Pause after X rouletes
 rouleteNumber = 1
 
 
-#The race information and subjects
+#The race population
 population = []
-totalFitness = 0
 
 def adanEva():
     # TODO hacer que los primeros especimenes se generen aleatoriamente
@@ -35,7 +34,7 @@ def adanEva():
     s1 = Subject("adan")
     s2 = Subject("eva")
     s3 = Subject("pedro")
-    s4 = Subject("clementinaaaaa")
+    s4 = Subject("clementina")
     population.append(s1)
     population.append(s2)
     population.append(s3)
@@ -297,6 +296,7 @@ class Subject():
         self.fitScore = wordLengthScore + letterEqualityScore
         return self.fitScore
 
+# Main execution
 adanEva()
 while(True):
     rouleteOfGod()
