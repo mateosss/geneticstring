@@ -3,9 +3,9 @@ from time import time
 startTime = time()
 # TODO ERRORS cuando algun gen llega a 0 o 255 queda ahi para siempre
 # TODO ERRORS siempre se mantienen las letras de los padres, nunca se van a generar nuevas letras, hacer el crossover por cada gen(letra) y no por cromosoma
-# TODO ERRORS Hacer el script threadsafe
+# TODO ERRORS Hacer el script threadsafe, buscar puntos donde sea posible mejorar el rendimiento
 #The God Word, to what the subject aspires to be
-god = "geneticString"
+god = "pato"
 
 #General Rules for fitness score
 wordLengthMaxScore = 0.5
@@ -15,8 +15,8 @@ wordLengthTolerance = 10
 
 #Various settings
 tolerance = 5 #round the subject fitness by this tolerance to compare with the god fitness
-crossoverRate = 0.7
-mutationRate = 0.05
+crossoverRate = 0.7 # This does not work as in normal GA, this sets the influence of the strongest parent to let its genes
+mutationRate = 0.5
 mutationLimit = 30 #The +- in which the gen will mutate if needed
 pause = 10000 #Pause after X rouletes
 rouleteNumber = 1
@@ -49,7 +49,7 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
 
     # Selecting all the population (ordered by fitScore) to crossover
     for i in range(0,len(population)/2,2):
-        crossovers.append(crossover(orderedPopulation[i], orderedPopulation[i+1]))
+        crossovers.append(crossoverByGen(orderedPopulation[i], orderedPopulation[i+1]))
 
     # Making the crossover
     for cross in crossovers:
@@ -104,18 +104,90 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
     # time.sleep(1)
 
 
-
-
-def crossover(c1, c2, sonsCount = 2):# TODO always two child, is that what i want?
+def crossover(c1, c2, sonsCount = 2):
     """
     - Parameters: stronger parent, weaker parent, quantity of childs
     - The first parent is considered the more evoluted, so it has 70 percent of chance for every character of use his genes insted of the other parent
     - The crossover is made by comparing the two parents letters and length, if the sons are equal to the parents they are deleted and reprocessed
-    - The large of the word is determined by: # TODO
+    - The large of the word is determined by: the promedy of the two parents length plus a special random int
     - The characters are determined by: The total range to iterate is determined by the largest parent, for every letter the stronger parent has 70 percent
         of chances of let its genes (his letter), the weakest has 30 percent.
-        - The characters in which one parent doesn't have characters to give:
-            TODO
+        - The characters in which one parent doesn't have characters to give
+    - Return: stronger parent, weakest parent , List of childs
+    """
+    global crossoverRate, mutationRate, tolerance, godFitness, population, wordLengthTolerance
+    parent1 = c1.value
+    parent2 = c2.value
+    if len(parent1) >= len(parent2):
+        maxRange = len(parent1)
+        minRange = len(parent2)
+    else:
+        maxRange = len(parent2)
+        minRange = len(parent1)
+
+    sons = []
+
+    for sonPos in range(sonsCount):
+        sonBorn = False
+        while not sonBorn:
+            son = []
+            iSonLength = maxRange + wordLengthTolerance #initial son length
+            for i in range((minRange + maxRange)/2 + min(minRange, wordLengthTolerance)):
+                cut = 4 + random.randint(0,3)
+                if not i >= minRange: # Inside the minRange
+                    half1 = parent1[i][0:cut]
+                    half2 = parent2[i][cut:]
+                    gen = half1 + half2
+                else: # Passing the minRange
+                    if len(parent1) == maxRange and i < maxRange:
+                        gen = parent1[i]
+                    elif len(parent2) == maxRange and i < maxRange:
+                        gen = parent2[i]
+                    else: # Passing the maxRange
+                        if random.random() < crossoverRate:
+                            gen = parent1[random.randint(0,len(parent1)-1)]
+                        else:
+                            gen = parent2[random.randint(0,len(parent2)-1)]
+
+                if random.random() <= mutationRate:
+                    gen = mutate(gen)
+                son.append(gen)
+
+            # Cut the word length: Promedio entre max y min length, mas random entre min(minRange|worldLengthTolerance) negativo y lo mismo positivo
+            cutWord = (minRange + maxRange)/2 + random.randint(-min(minRange, wordLengthTolerance),min(minRange, wordLengthTolerance))
+            son = son[0:cutWord]
+
+            if len(son) > 0:
+                babySon = Subject(son)
+                family = [c1,c2]
+                family.extend(population)
+                family.extend(sons)
+
+                repeated = False
+                for i in family:
+                    if babySon.getAsInts() == i.getAsInts():
+                        repeated = True
+                        break
+                if not repeated:
+                    sons.append(babySon)
+                    sonBorn = True
+    # print("\tParents:")
+    # print("\t" + c1.toString())
+    # print("\t" + c2.toString())
+    # print("\tSons:")
+    # print("\t" + sons[0].toString())
+    # print("\t" + sons[1].toString())
+    return [c1, c2, sons]
+
+def crossoverByGen(c1, c2, sonsCount = 2):
+    """
+    - Parameters: stronger parent, weaker parent, quantity of childs
+    - The first parent is considered the more evoluted, so it has 70 percent of chance for every character of use his genes insted of the other parent
+    - The crossover is made by comparing the two parents letters and length, if the sons are equal to the parents they are deleted and reprocessed
+    - The large of the word is determined by: the promedy of the two parents length plus a special random int
+    - The characters are determined by: The total range to iterate is determined by the largest parent, for every letter the stronger parent has 70 percent
+        of chances of let its genes (his letter), the weakest has 30 percent.
+        - The characters in which one parent doesn't have characters to give
     - Return: stronger parent, weakest parent , List of childs
     """
     global crossoverRate, mutationRate, tolerance, godFitness, population, wordLengthTolerance
