@@ -16,7 +16,7 @@ wordLengthTolerance = 10
 #Various settings
 tolerance = 5 #round the subject fitness by this tolerance to compare with the god fitness
 crossoverRate = 0.7 # This does not work as in normal GA, this sets the influence of the strongest parent to let its genes
-mutationRate = 0.5
+mutationRate = 0.1
 mutationLimit = 30 #The +- in which the gen will mutate if needed
 pause = 10000 #Pause after X rouletes
 rouleteNumber = 1
@@ -49,7 +49,7 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
 
     # Selecting all the population (ordered by fitScore) to crossover
     for i in range(0,len(population)/2,2):
-        crossovers.append(crossoverByGen(orderedPopulation[i], orderedPopulation[i+1]))
+        crossovers.append(crossover(orderedPopulation[i], orderedPopulation[i+1]))
 
     # Making the crossover
     for cross in crossovers:
