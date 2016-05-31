@@ -1,24 +1,25 @@
+#encoding=utf8
 import random
 from time import time
 startTime = time()
-# TODO ERRORS cuando algun gen llega a 0 o 255 queda ahi para siempre
-# TODO ERRORS siempre se mantienen las letras de los padres, nunca se van a generar nuevas letras, hacer el crossover por cada gen(letra) y no por cromosoma
+
 # TODO ERRORS Hacer el script threadsafe, buscar puntos donde sea posible mejorar el rendimiento
+
 #The God Word, to what the subject aspires to be
-god = "pato"
+god = "geneticString"
 
 #General Rules for fitness score
-wordLengthMaxScore = 0.5
-letterEqualityMaxScore = 0.5
+wordLengthMaxScore = 0.001
+letterEqualityMaxScore = 0.999
 godFitness = wordLengthMaxScore + letterEqualityMaxScore
-wordLengthTolerance = 10
+wordLengthTolerance = 2 # not taking in count letters beyond this tolerance
 
 #Various settings
 tolerance = 5 #round the subject fitness by this tolerance to compare with the god fitness
 crossoverRate = 0.7 # This does not work as in normal GA, this sets the influence of the strongest parent to let its genes
-mutationRate = 0.1
-mutationLimit = 30 #The +- in which the gen will mutate if needed
-pause = 10000 #Pause after X rouletes
+mutationRate = 1.0/len(god)
+mutationLimit = 100 #The +- in which the gen will mutate if needed
+pause = 1000 #Pause after X rouletes
 rouleteNumber = 1
 
 
@@ -97,9 +98,9 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
         for i in population:
             scores.append(i.fitScore)
             print("| "+i.__str__()+" "),
-        print()
-        print("AVG - " + str(round(sum(scores)/len(scores),tolerance)))
-        print("pause...")
+        print("")
+        avg = round(sum(scores)/len(scores),tolerance)  
+        print("AVG - " + str(avg))
         # time.sleep(3)
     # time.sleep(1)
 
@@ -300,7 +301,13 @@ def mutate(gen):
         limit = 255-genNumber
     if genNumber - limit < 0:
         limit = genNumber
-    newGenNumber = genNumber+random.randint(-limit,limit)
+
+    if genNumber == 255:
+        newGenNumber = genNumber+random.randint(-limit,255)
+    elif genNumber == 0:
+        newGenNumber = genNumber+random.randint(0,limit)
+    else:
+        newGenNumber = genNumber+random.randint(-limit,limit)
     mutatedGen = format(newGenNumber,"b")[:8].zfill(8)
     # print("<<MUTATION XMEN POWER")
     # print(genNumber,newGenNumber)
