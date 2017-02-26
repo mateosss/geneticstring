@@ -1,30 +1,32 @@
-#encoding=utf8
+# encoding=utf8
+from __future__ import print_function
 import random
 from time import time
 startTime = time()
 
 # TODO ERRORS Hacer el script threadsafe, buscar puntos donde sea posible mejorar el rendimiento
 
-#The God Word, to what the subject aspires to be
+# The God Word, to what the subject aspires to be
 god = "geneticString"
 
-#General Rules for fitness score
+# General Rules for fitness score
 wordLengthMaxScore = 0.001
 letterEqualityMaxScore = 0.999
 godFitness = wordLengthMaxScore + letterEqualityMaxScore
-wordLengthTolerance = 2 # not taking in count letters beyond this tolerance
+wordLengthTolerance = 2  # not taking in count letters beyond this tolerance
 
-#Various settings
-tolerance = 5 #round the subject fitness by this tolerance to compare with the god fitness
-crossoverRate = 0.7 # This does not work as in normal GA, this sets the influence of the strongest parent to let its genes
-mutationRate = 1.0/len(god)
-mutationLimit = 100 #The +- in which the gen will mutate if needed
-pause = 1000 #Pause after X rouletes
+# Various settings
+tolerance = 5  # round the subject fitness by this tolerance to compare with the god fitness
+crossoverRate = 0.7  # This does not work as in normal GA, this sets the influence of the strongest parent to let its genes
+mutationRate = 1.0 / len(god)
+mutationLimit = 100  # The +- in which the gen will mutate if needed
+pause = 1000  # Pause after X rouletes
 rouleteNumber = 1
 
 
-#The race population
+# The race population
 population = []
+
 
 def adanEva():
     # TODO hacer que los primeros especimenes se generen aleatoriamente
@@ -42,15 +44,15 @@ def adanEva():
     population.append(s4)
 
 
-def rouleteOfGod():# TODO always the half populations, is that what i want?
+def rouleteOfGod():  # TODO always the half populations, is that what i want?
     global population, pause, rouleteNumber, tolerance, startTime
 
     orderedPopulation = rollTheRoulete(True)
     crossovers = []
 
     # Selecting all the population (ordered by fitScore) to crossover
-    for i in range(0,len(population)/2,2):
-        crossovers.append(crossover(orderedPopulation[i], orderedPopulation[i+1]))
+    for i in range(0, len(population) // 2, 2):
+        crossovers.append(crossover(orderedPopulation[i], orderedPopulation[i + 1]))
 
     # Making the crossover
     for cross in crossovers:
@@ -63,9 +65,9 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
         # Check if the subject is the final answer
         theSonOfGod = False
         if tolerance != 0:
-            if round(firstSon.fitScore,tolerance) == round(godFitness,tolerance):
+            if round(firstSon.fitScore, tolerance) == round(godFitness, tolerance):
                 theSonOfGod = firstSon
-            if round(secondSon.fitScore,tolerance) == round(godFitness,tolerance):
+            if round(secondSon.fitScore, tolerance) == round(godFitness, tolerance):
                 theSonOfGod = secondSon
         else:
             if firstSon.fitScore == godFitness:
@@ -81,31 +83,31 @@ def rouleteOfGod():# TODO always the half populations, is that what i want?
             print(theSonOfGod.fitScore)
             print(theSonOfGod)
             elapsedTime = time() - startTime
-            print("Done. In "+ str(rouleteNumber) + " Generations. In " + str(elapsedTime) + " Seconds.")
+            print("Done. In " + str(rouleteNumber) + " Generations. In " + str(elapsedTime) + " Seconds.")
             print("")
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             exit()
         # print("\t\t------------------")
 
     # Killing the weakests
-    applyDeath(2,False)
+    applyDeath(2, False)
 
     rouleteNumber += 1
-    if pause != 0 and rouleteNumber%pause == 0:
+    if pause != 0 and rouleteNumber % pause == 0:
         # Debug labors
         scores = []
-        print("Population: "),
+        print("Population: ", end=""),
         for i in population:
             scores.append(i.fitScore)
-            print("| "+i.__str__()+" "),
+            print("| " + i.__str__() + " ", end=""),
         print("")
-        avg = round(sum(scores)/len(scores),tolerance)  
+        avg = round(sum(scores) / len(scores), tolerance)
         print("AVG - " + str(avg))
         # time.sleep(3)
     # time.sleep(1)
 
 
-def crossover(c1, c2, sonsCount = 2):
+def crossover(c1, c2, sonsCount=2):
     """
     - Parameters: stronger parent, weaker parent, quantity of childs
     - The first parent is considered the more evoluted, so it has 70 percent of chance for every character of use his genes insted of the other parent
@@ -132,35 +134,35 @@ def crossover(c1, c2, sonsCount = 2):
         sonBorn = False
         while not sonBorn:
             son = []
-            iSonLength = maxRange + wordLengthTolerance #initial son length
-            for i in range((minRange + maxRange)/2 + min(minRange, wordLengthTolerance)):
-                cut = 4 + random.randint(0,3)
-                if not i >= minRange: # Inside the minRange
+            iSonLength = maxRange + wordLengthTolerance  # initial son length
+            for i in range((minRange + maxRange) // 2 + min(minRange, wordLengthTolerance)):
+                cut = 4 + random.randint(0, 3)
+                if not i >= minRange:  # Inside the minRange
                     half1 = parent1[i][0:cut]
                     half2 = parent2[i][cut:]
                     gen = half1 + half2
-                else: # Passing the minRange
+                else:  # Passing the minRange
                     if len(parent1) == maxRange and i < maxRange:
                         gen = parent1[i]
                     elif len(parent2) == maxRange and i < maxRange:
                         gen = parent2[i]
-                    else: # Passing the maxRange
+                    else:  # Passing the maxRange
                         if random.random() < crossoverRate:
-                            gen = parent1[random.randint(0,len(parent1)-1)]
+                            gen = parent1[random.randint(0, len(parent1) - 1)]
                         else:
-                            gen = parent2[random.randint(0,len(parent2)-1)]
+                            gen = parent2[random.randint(0, len(parent2) - 1)]
 
                 if random.random() <= mutationRate:
                     gen = mutate(gen)
                 son.append(gen)
 
             # Cut the word length: Promedio entre max y min length, mas random entre min(minRange|worldLengthTolerance) negativo y lo mismo positivo
-            cutWord = (minRange + maxRange)/2 + random.randint(-min(minRange, wordLengthTolerance),min(minRange, wordLengthTolerance))
+            cutWord = (minRange + maxRange) // 2 + random.randint(-min(minRange, wordLengthTolerance), min(minRange, wordLengthTolerance))
             son = son[0:cutWord]
 
             if len(son) > 0:
                 babySon = Subject(son)
-                family = [c1,c2]
+                family = [c1, c2]
                 family.extend(population)
                 family.extend(sons)
 
@@ -180,7 +182,8 @@ def crossover(c1, c2, sonsCount = 2):
     # print("\t" + sons[1].toString())
     return [c1, c2, sons]
 
-def crossoverByGen(c1, c2, sonsCount = 2):
+
+def crossoverByGen(c1, c2, sonsCount=2):
     """
     - Parameters: stronger parent, weaker parent, quantity of childs
     - The first parent is considered the more evoluted, so it has 70 percent of chance for every character of use his genes insted of the other parent
@@ -207,41 +210,41 @@ def crossoverByGen(c1, c2, sonsCount = 2):
         sonBorn = False
         while not sonBorn:
             son = []
-            iSonLength = maxRange + wordLengthTolerance #initial son length
-            for i in range((minRange + maxRange)/2 + min(minRange, wordLengthTolerance)):
-                if random.random() < crossoverRate:# Strongest parent wins the gen
-                    if not i>=len(parent1):# If strongest parent enters in max Range (is the larger at last chars)
+            iSonLength = maxRange + wordLengthTolerance  # initial son length
+            for i in range((minRange + maxRange) // 2 + min(minRange, wordLengthTolerance)):
+                if random.random() < crossoverRate:  # Strongest parent wins the gen
+                    if not i >= len(parent1):  # If strongest parent enters in max Range (is the larger at last chars)
                         gen = parent1[i]
                     else:
-                        if random.random() < crossoverRate:# The stronger parent has the oportunity to win again in the diferential letters
-                            gen = parent1[random.randint(0,minRange-1)]# The stronger parent sets a random letter owned by it
+                        if random.random() < crossoverRate:  # The stronger parent has the oportunity to win again in the diferential letters
+                            gen = parent1[random.randint(0, minRange - 1)]  # The stronger parent sets a random letter owned by it
                         else:
-                            if not i>=len(parent2):
+                            if not i >= len(parent2):
                                 gen = parent2[i]
                             else:
-                                gen = parent2[random.randint(0,minRange-1)]# This happens when we overpass maxRange
-                else:# Weakest parent wins the gen
-                    if not i>=len(parent2): # If weakest parent enters in max Range (is the larger at last chars)
+                                gen = parent2[random.randint(0, minRange - 1)]  # This happens when we overpass maxRange
+                else:  # Weakest parent wins the gen
+                    if not i >= len(parent2):  # If weakest parent enters in max Range (is the larger at last chars)
                         gen = parent2[i]
                     else:
-                        if random.random() < crossoverRate:# The stronger parent has the oportunity to win again in the diferential letters
-                            if not i>=len(parent1):
-                                gen = parent1[i]# The stronger parent sets a random letter owned by it
+                        if random.random() < crossoverRate:  # The stronger parent has the oportunity to win again in the diferential letters
+                            if not i >= len(parent1):
+                                gen = parent1[i]  # The stronger parent sets a random letter owned by it
                             else:
-                                gen = parent1[random.randint(0,minRange-1)]# This happens when we overpass maxRange
+                                gen = parent1[random.randint(0, minRange - 1)]  # This happens when we overpass maxRange
                         else:
-                            gen = parent2[random.randint(0,minRange-1)]
+                            gen = parent2[random.randint(0, minRange - 1)]
                 if random.random() <= mutationRate:
                     gen = mutate(gen)
                 son.append(gen)
 
             # Cut the word length: Promedio entre max y min length, mas random entre min(minRange|worldLengthTolerance) negativo y lo mismo positivo
-            cutWord = (minRange + maxRange)/2 + random.randint(-min(minRange, wordLengthTolerance),min(minRange, wordLengthTolerance))
+            cutWord = (minRange + maxRange) // 2 + random.randint(-min(minRange, wordLengthTolerance), min(minRange, wordLengthTolerance))
             son = son[0:cutWord]
 
             if len(son) > 0:
                 babySon = Subject(son)
-                family = [c1,c2]
+                family = [c1, c2]
                 family.extend(population)
                 family.extend(sons)
 
@@ -261,7 +264,8 @@ def crossoverByGen(c1, c2, sonsCount = 2):
     # print("\t" + sons[1].toString())
     return [c1, c2, sons]
 
-def rollTheRoulete(randomly = True):
+
+def rollTheRoulete(randomly=True):
     global population
     if randomly:
         randomised = [(subject, random.random() * subject.fitScore) for subject in population]
@@ -272,7 +276,8 @@ def rollTheRoulete(randomly = True):
     result = list(reversed(cleaned))
     return result
 
-def applyDeath(howMany = False, randomly = False):
+
+def applyDeath(howMany=False, randomly=False):
     """
     Removes the population slowest fitscore subjects
     - If how many is false, then half the population, otherwise, the specified amount
@@ -280,7 +285,7 @@ def applyDeath(howMany = False, randomly = False):
     """
     global population
     if howMany == False:
-        howMany = len(population)/2
+        howMany = len(population) // 2
     if randomly:
         randomised = [(subject, random.random() * subject.fitScore) for subject in population]
     else:
@@ -296,27 +301,28 @@ def applyDeath(howMany = False, randomly = False):
 def mutate(gen):
     global mutationLimit
     limit = mutationLimit
-    genNumber = int(gen,2)
+    genNumber = int(gen, 2)
     if genNumber + limit > 255:
-        limit = 255-genNumber
+        limit = 255 - genNumber
     if genNumber - limit < 0:
         limit = genNumber
 
     if genNumber == 255:
-        newGenNumber = genNumber+random.randint(-limit,255)
+        newGenNumber = genNumber + random.randint(-limit, 255)
     elif genNumber == 0:
-        newGenNumber = genNumber+random.randint(0,limit)
+        newGenNumber = genNumber + random.randint(0, limit)
     else:
-        newGenNumber = genNumber+random.randint(-limit,limit)
-    mutatedGen = format(newGenNumber,"b")[:8].zfill(8)
+        newGenNumber = genNumber + random.randint(-limit, limit)
+    mutatedGen = format(newGenNumber, "b")[:8].zfill(8)
     # print("<<MUTATION XMEN POWER")
     # print(genNumber,newGenNumber)
     # print("\tMUTATION XMEN POWER>>")
     return mutatedGen
 
+
 class Subject():
 
-    def __init__(self,value):
+    def __init__(self, value):
         if type(value) == str:
             self.value = list(format(ord(x), 'b').zfill(8) for x in value)
         else:
@@ -326,19 +332,19 @@ class Subject():
     def __str__(self):
         res = ""
         for gen in self.value:
-            res += chr(int(gen,2))
+            res += chr(int(gen, 2))
         return res
 
     def getAsInts(self):
         res = []
         for gen in self.value:
-            res.append(int(gen,2))
+            res.append(int(gen, 2))
         return res
 
     def toString(self):
         resStr = self.__str__()
         resInt = self.getAsInts()
-        res = "| "+resStr + " | " + str(resInt) + " |"
+        res = "| " + resStr + " | " + str(resInt) + " |"
         return res
 
     def wordLengthScore(self):
@@ -346,28 +352,26 @@ class Subject():
         maxScore = wordLengthMaxScore
         tolerance = wordLengthTolerance
 
-        if len(self.value)-tolerance<=len(god) or len(self.value)+tolerance>=len(god):
-            res = maxScore - ((maxScore/tolerance) * abs(len(self.value)-len(god)))
+        if len(self.value) - tolerance <= len(god) or len(self.value) + tolerance >= len(god):
+            res = maxScore - ((maxScore / tolerance) * abs(len(self.value) - len(god)))
         else:
             res = 0.0
 
         return res
 
-
     def letterEqualityScore(self):
         global god, letterEqualityMaxScore
         maxScore = letterEqualityMaxScore
         letterScore = maxScore / len(self.value)
-        if len(god)<=len(self.value):
+        if len(god) <= len(self.value):
             godRange = len(god)
         else:
             godRange = len(self.value)
         res = 0
         for i in range(godRange):
-            lettersDiff = abs(ord(god[i])-int(self.value[i],2))
-            res += letterScore - ((letterScore/256)*lettersDiff)
+            lettersDiff = abs(ord(god[i]) - int(self.value[i], 2))
+            res += letterScore - ((letterScore / 256) * lettersDiff)
         return res
-
 
     def fitScore(self):
         wordLengthScore = self.wordLengthScore()
